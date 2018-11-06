@@ -53,12 +53,15 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.Config;
@@ -1307,6 +1310,24 @@ public class InAppBrowser extends CordovaPlugin {
                 LOG.d(LOG_TAG, "Should never happen");
             }
         }
+
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) { 
+            super.onReceivedHttpError(view, request, errorResponse);
+
+            String description = errorResponse.getReasonPhrase()
+            int errorCode = errorResponse.getStatusCode();
+
+            try {
+                JSONObject obj = new JSONObject();
+                obj.put("type", LOAD_ERROR_EVENT);
+                obj.put("code", errorCode);
+                obj.put("message", description);
+
+                sendUpdate(obj, true, PluginResult.Status.ERROR);
+            } catch (JSONException ex) {
+                LOG.d(LOG_TAG, "Should never happen");
+            }
+        } 
 
         /**
          * On received http auth request.
